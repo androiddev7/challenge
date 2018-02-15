@@ -31,18 +31,4 @@ public class Account {
     this.accountId = accountId;
     this.balance = balance;
   }
-
-  public String getAccountId() {
-	return accountId;
-  }
-
-  public BigDecimal getBalance() {
-	return balance;
-  }
-
-public void setBalance(BigDecimal balance) {
-	this.balance = balance;
-}
-  
-  
 }
