@@ -1,7 +1,5 @@
 package com.db.awmd.challenge.web;
 
-import java.math.BigDecimal;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
