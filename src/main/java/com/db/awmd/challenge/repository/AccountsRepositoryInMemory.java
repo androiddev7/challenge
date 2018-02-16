@@ -1,12 +1,18 @@
 package com.db.awmd.challenge.repository;
 
-import com.db.awmd.challenge.domain.Account;
-import com.db.awmd.challenge.exception.DuplicateAccountIdException;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.stereotype.Repository;
 
+import com.db.awmd.challenge.domain.Account;
+import com.db.awmd.challenge.exception.DuplicateAccountIdException;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Repository
+@Slf4j
 public class AccountsRepositoryInMemory implements AccountsRepository {
 
   private final Map<String, Account> accounts = new ConcurrentHashMap<>();
@@ -30,4 +36,13 @@ public class AccountsRepositoryInMemory implements AccountsRepository {
     accounts.clear();
   }
 
+  @Override
+  public void updateAccountBalance(Account accountFrom, Account accountTo, BigDecimal balance) {
+	  accountTo.setBalance(accountTo.getBalance().add(balance));
+	  accountFrom.setBalance(accountFrom.getBalance().subtract(balance));
+	  accounts.put(accountTo.getAccountId(), accountTo);
+	  accounts.put(accountFrom.getAccountId(), accountFrom);
+  }
+
 }
+
