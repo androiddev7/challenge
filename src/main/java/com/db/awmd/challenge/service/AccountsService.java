@@ -42,14 +42,12 @@ public class AccountsService {
 	validateRequest(accountFrom, accountTo, transferBalance);
 	BigDecimal balance=transferBalance.getBalance();
 	this.accountsRepository.updateAccountBalance(accountFrom, accountTo, balance);
-	emailNotificationService.notifyAboutTransfer(accountFrom,balance+" debited from the account" );
-	emailNotificationService.notifyAboutTransfer(accountTo,balance+" credited into the account" );
+	emailNotificationService.notifyAboutTransfer(accountFrom,balance+" debited and credited to account id"+accountTo.getAccountId() );
+	emailNotificationService.notifyAboutTransfer(accountTo,balance+" credited into the account from account id"+accountFrom.getAccountId() );
   }
 
   private void validateRequest(Account accountFrom, Account accountTo, TransferAmount transferBalance) {
-	 if (transferBalance.getBalance().intValue() == 0) {
-		throw new InvalidAccountException("Amount to transfer cannot be 0");
-	} else if (transferBalance.getAccountIdFrom().equals(transferBalance.getAccountIdTo())) {
+	 if (transferBalance.getAccountIdFrom().equals(transferBalance.getAccountIdTo())) {
 		throw new InvalidAccountException("Both accounts cannot be same");
 	} else if (transferBalance.getBalance().compareTo(accountFrom.getBalance()) > 0) {
 		throw new InvalidAmountException("Account id " + accountFrom.getAccountId() + " does not have sufficient balance");
