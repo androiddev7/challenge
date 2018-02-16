@@ -129,7 +129,7 @@ public class AccountsControllerTest {
 	 this.mockMvc.perform(put("/v1/accounts/transfer").contentType(MediaType.APPLICATION_JSON)
 		      .content("{\"accountIdFrom\":\"1001\",\"accountIdTo\":\"1002\",\"balance\": 50000}"))
 	          .andExpect(status().isBadRequest())
-	          .andExpect(content().string("Account id 1001 does not have sufficient balance"));
+	          .andExpect(content().string("Account id 1001 does not have sufficient balance to transfer"));
 	 
   }
   

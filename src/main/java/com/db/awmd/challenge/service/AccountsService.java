@@ -19,7 +19,6 @@ public class AccountsService {
   @Getter
   private final AccountsRepository accountsRepository;
   
-  @Getter
   private final EmailNotificationService emailNotificationService;
 
   @Autowired
@@ -36,29 +35,9 @@ public class AccountsService {
     return this.accountsRepository.getAccount(accountId);
   }
   
-  public void transferAmount(TransferAmount transferBalance) {
-	final Account accountFrom = getAccountIfExists(transferBalance.getAccountIdFrom());
-	final Account accountTo = getAccountIfExists(transferBalance.getAccountIdTo());
-	validateRequest(accountFrom, accountTo, transferBalance);
-	BigDecimal balance=transferBalance.getBalance();
+  public void transferAmount(Account accountFrom, Account accountTo, BigDecimal balance) {
 	this.accountsRepository.updateAccountBalance(accountFrom, accountTo, balance);
-	emailNotificationService.notifyAboutTransfer(accountFrom,balance+" debited and credited to account id"+accountTo.getAccountId() );
-	emailNotificationService.notifyAboutTransfer(accountTo,balance+" credited into the account from account id"+accountFrom.getAccountId() );
+	emailNotificationService.notifyAboutTransfer(accountFrom,balance+" debited and credited to account id "+accountTo.getAccountId() );
+	emailNotificationService.notifyAboutTransfer(accountTo,balance+" credited into the account from account id "+accountFrom.getAccountId() );
   }
-
-  private void validateRequest(Account accountFrom, Account accountTo, TransferAmount transferBalance) {
-	 if (transferBalance.getAccountIdFrom().equals(transferBalance.getAccountIdTo())) {
-		throw new InvalidAccountException("Both accounts cannot be same");
-	} else if (transferBalance.getBalance().compareTo(accountFrom.getBalance()) > 0) {
-		throw new InvalidAmountException("Account id " + accountFrom.getAccountId() + " does not have sufficient balance");
-	}
-  }
-
-  private Account getAccountIfExists(String accountId) {
-	final Account account = getAccount(accountId);
-	if (null == account) {
-		throw new InvalidAccountException("Account id " + accountId + " does not exist");
-	}
-	return account;
-  }	
 }

@@ -1,5 +1,7 @@
 package com.db.awmd.challenge.web;
 
+import java.math.BigDecimal;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,15 +60,39 @@ public class AccountsController {
   public ResponseEntity<Object> transferMoney(@RequestBody @Valid TransferAmount transferBalance){
 	  ResponseEntity<Object> response = null;
 	  try{
-		  this.accountsService.transferAmount(transferBalance);
-		  log.info("{} amount successfully transferred from {} to {}",transferBalance.getBalance(),transferBalance.getAccountIdFrom(),transferBalance.getAccountIdTo());
-		  response= new ResponseEntity<Object>("Amount successfully transferred", HttpStatus.OK);
+		 ///validating request body
+		final Account accountFrom = getAccountIfExists(transferBalance.getAccountIdFrom());
+		final Account accountTo = getAccountIfExists(transferBalance.getAccountIdTo());
+		validateRequest(accountFrom, accountTo, transferBalance);
+		
+		//transferring amount if the request is valid 
+		log.info("{} amount transferring from {} to {}",transferBalance.getBalance(),transferBalance.getAccountIdFrom(),transferBalance.getAccountIdTo());
+		this.accountsService.transferAmount(accountFrom, accountTo, transferBalance.getBalance());
+		
+		//if amount gets transferred successfully
+		response= new ResponseEntity<Object>("Amount successfully transferred", HttpStatus.OK);
 	  }catch(InvalidAmountException ibe){
-		  response = new ResponseEntity<Object>(ibe.getMessage(), HttpStatus.BAD_REQUEST);
+		response = new ResponseEntity<Object>(ibe.getMessage(), HttpStatus.BAD_REQUEST);
 	  }catch(InvalidAccountException iae){
-		  response = new ResponseEntity<Object>(iae.getMessage(), HttpStatus.BAD_REQUEST);
+		response = new ResponseEntity<Object>(iae.getMessage(), HttpStatus.BAD_REQUEST);
 	  }
 	 return response;
   }
+  
+	private void validateRequest(Account accountFrom, Account accountTo, TransferAmount transferBalance) {
+		if (transferBalance.getAccountIdFrom().equals(transferBalance.getAccountIdTo())) {
+			throw new InvalidAccountException("Both accounts cannot be same");
+		} else if (transferBalance.getBalance().compareTo(accountFrom.getBalance()) > 0) {
+			throw new InvalidAmountException("Account id " + accountFrom.getAccountId() + " does not have sufficient balance to transfer");
+		}
+	}
+
+	private Account getAccountIfExists(String accountId) {
+		final Account account = this.accountsService.getAccount(accountId);
+		if (null == account) {
+			throw new InvalidAccountException("Account id " + accountId + " does not exist"); //if the account id in request does not exist
+		}
+		return account;
+	}
 
 }
