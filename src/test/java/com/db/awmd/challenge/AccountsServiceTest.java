@@ -74,7 +74,7 @@ public class AccountsServiceTest {
   }
   
   @Test
-  public void testWithdrawAmount() throws Exception{
+  public void testWithdrawalOperation() throws Exception{
 	  Account account= new Account("Id-AccWithDraw"); 
 	  account.setBalance(new BigDecimal(1000));
 	  this.accountsService.createAccount(account);
@@ -89,7 +89,7 @@ public class AccountsServiceTest {
   }
   
   @Test
-  public void testDepositAmount() throws Exception{
+  public void testDepositOperation() throws Exception{
 	  Account account= new Account("Id-AccDeposit"); 
 	  account.setBalance(new BigDecimal(1000));
 	  this.accountsService.createAccount(account);
@@ -123,6 +123,8 @@ public class AccountsServiceTest {
 	   
 	  Thread tWithdraw = new Thread(r_withdraw);
 	  Thread tDeposit = new Thread(r_deposit);
+	  
+	  //two threads are started to perform withdraw and deposit operations simultaneously but operations should perform in sequence
 	  tWithdraw.start();
 	  tDeposit.start();
   }
@@ -135,7 +137,7 @@ public class AccountsServiceTest {
       Account accountFrom = new Account("accFrom", new BigDecimal(1000));
       Account accountTo = new Account("accTo", new BigDecimal(500));	  
 	  accService.transferAmount(accountFrom,accountTo,new BigDecimal(500));
-	  verify(notificationService, times(2)).notifyAboutTransfer(any(), any());
+	  verify(notificationService, times(2)).notifyAboutTransfer(any(), any());//verify if the notification service method was invoked 2 times
   }
   
 }
