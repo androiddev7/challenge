@@ -2,6 +2,10 @@ package com.db.awmd.challenge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 
@@ -13,21 +17,21 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.db.awmd.challenge.domain.Account;
 import com.db.awmd.challenge.exception.DuplicateAccountIdException;
+import com.db.awmd.challenge.repository.AccountsRepository;
 import com.db.awmd.challenge.service.AccountsService;
-
+import com.db.awmd.challenge.service.EmailNotificationService;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class AccountsServiceTest {
   
   @Autowired
   private AccountsService accountsService;
-
+  
   @Test
   public void addAccount() throws Exception {
     Account account = new Account("Id-123");
     account.setBalance(new BigDecimal(1000));
     this.accountsService.createAccount(account);
-
     assertThat(this.accountsService.getAccount("Id-123")).isEqualTo(account);
   }
 
@@ -46,17 +50,92 @@ public class AccountsServiceTest {
   }
   
   @Test
-  public void transferAmount() throws Exception {
-	    Account accountFrom= new Account("Id-123"); 
+  public void testTransferAmount() throws Exception {
+	  
+	    //created two accounts
+	    Account accountFrom= new Account("Id-AccFrom"); 
 	    accountFrom.setBalance(new BigDecimal(1000));
-	    
-	    Account accountTo= new Account("Id-456"); 
+	    this.accountsService.createAccount(accountFrom);
+	    Account accountTo= new Account("Id-AccTo"); 
 	    accountTo.setBalance(new BigDecimal(1000));
-	    
+	    this.accountsService.createAccount(accountTo);
 	    BigDecimal balance = new BigDecimal(500);
 	    
+	    //assert account balance before transfer
+	    assertThat(accountFrom.getBalance()).isEqualTo(new BigDecimal(1000));
+	    assertThat(accountTo.getBalance()).isEqualTo(new BigDecimal(1000));
+	    
+	    //transfer amount
 	    this.accountsService.transferAmount(accountFrom, accountTo, balance);
-	    assertThat(this.accountsService.getAccount("Id-123").getBalance()).isEqualTo(new BigDecimal(500));
-	    assertThat(this.accountsService.getAccount("Id-456").getBalance()).isEqualTo(new BigDecimal(1500));
+	    
+	    //assert account balance after transfer
+	    assertThat(accountFrom.getBalance()).isEqualTo(new BigDecimal(500));
+	    assertThat(accountTo.getBalance()).isEqualTo(new BigDecimal(1500));
   }
+  
+  @Test
+  public void testWithdrawAmount() throws Exception{
+	  Account account= new Account("Id-AccWithDraw"); 
+	  account.setBalance(new BigDecimal(1000));
+	  this.accountsService.createAccount(account);
+	  
+	  //assert account balance before withdraw
+	  assertThat(account.getBalance()).isEqualTo(new BigDecimal(1000));
+	  
+	  account.withdraw(new BigDecimal(500));
+	  
+	  //assert account balance after withdraw
+	  assertThat(account.getBalance()).isEqualTo(new BigDecimal(500));
+  }
+  
+  @Test
+  public void testDepositAmount() throws Exception{
+	  Account account= new Account("Id-AccDeposit"); 
+	  account.setBalance(new BigDecimal(1000));
+	  this.accountsService.createAccount(account);
+	  //assert account balance before deposit
+	  assertThat(account.getBalance()).isEqualTo(new BigDecimal(1000));
+	  account.deposit(new BigDecimal(500));
+	  //assert account balance after deposit
+	  assertThat(account.getBalance()).isEqualTo(new BigDecimal(1500));
+  }
+  
+  @Test
+  public void testConcurrentOperations() throws Exception{
+	  Account account= new Account("Id-ConcAcc"); 
+	  account.setBalance(new BigDecimal(1000));
+	  this.accountsService.createAccount(account);
+	  Runnable r_withdraw = new Runnable() {
+		@Override
+		public void run() {
+			account.withdraw(new BigDecimal(500));
+			assertThat(account.getBalance()).isEqualTo(new BigDecimal(500));
+		}
+	  };
+	  
+	  Runnable r_deposit = new Runnable() {
+		@Override
+		public void run() {
+			account.deposit(new BigDecimal(1500));
+		    assertThat(account.getBalance()).isEqualTo(new BigDecimal(2000));
+		}	
+	   };
+	   
+	  Thread tWithdraw = new Thread(r_withdraw);
+	  Thread tDeposit = new Thread(r_deposit);
+	  tWithdraw.start();
+	  tDeposit.start();
+  }
+  
+  @Test
+  public void testNotificationService() throws Exception{
+	  AccountsRepository acc = mock(AccountsRepository.class);
+	  EmailNotificationService foo = mock(EmailNotificationService.class);
+	  AccountsService bar = new AccountsService(acc, foo);
+      Account accountFrom = new Account("accFrom", new BigDecimal(1000));
+      Account accountTo = new Account("accTo", new BigDecimal(500));	  
+	  bar.transferAmount(accountFrom,accountTo,new BigDecimal(500));
+	  verify(foo, times(2)).notifyAboutTransfer(any(), any());
+  }
+  
 }
