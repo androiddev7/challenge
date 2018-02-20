@@ -31,4 +31,18 @@ public class Account {
     this.accountId = accountId;
     this.balance = balance;
   }
+  
+  //to deposit amount
+ public void deposit(BigDecimal amount) {
+	 synchronized (this) {
+		 balance =balance.add(amount);
+	 }
+ }
+
+ // to withdraw amount
+ public void withdraw(BigDecimal amount) {
+	synchronized (this) {
+	  balance = balance.subtract(amount);
+	}
+ }	
 }

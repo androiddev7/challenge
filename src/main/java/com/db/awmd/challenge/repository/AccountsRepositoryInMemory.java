@@ -38,10 +38,10 @@ public class AccountsRepositoryInMemory implements AccountsRepository {
 
   @Override
   public void updateAccountBalance(Account accountFrom, Account accountTo, BigDecimal balance) {
-	  accountTo.setBalance(accountTo.getBalance().add(balance));
-	  accountFrom.setBalance(accountFrom.getBalance().subtract(balance));
-	  accounts.put(accountTo.getAccountId(), accountTo);
-	  accounts.put(accountFrom.getAccountId(), accountFrom);
+	 synchronized (this) {
+		accountFrom.withdraw(balance);
+		accountTo.deposit(balance);
+	}	
   }
 
 }
