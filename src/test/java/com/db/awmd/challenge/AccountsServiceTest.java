@@ -129,13 +129,13 @@ public class AccountsServiceTest {
   
   @Test
   public void testNotificationService() throws Exception{
-	  AccountsRepository acc = mock(AccountsRepository.class);
-	  EmailNotificationService foo = mock(EmailNotificationService.class);
-	  AccountsService bar = new AccountsService(acc, foo);
+	  AccountsRepository accountRepository = mock(AccountsRepository.class);
+	  EmailNotificationService notificationService = mock(EmailNotificationService.class);
+	  AccountsService accService = new AccountsService(accountRepository, notificationService);
       Account accountFrom = new Account("accFrom", new BigDecimal(1000));
       Account accountTo = new Account("accTo", new BigDecimal(500));	  
-	  bar.transferAmount(accountFrom,accountTo,new BigDecimal(500));
-	  verify(foo, times(2)).notifyAboutTransfer(any(), any());
+	  accService.transferAmount(accountFrom,accountTo,new BigDecimal(500));
+	  verify(notificationService, times(2)).notifyAboutTransfer(any(), any());
   }
   
 }
