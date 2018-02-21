@@ -138,6 +138,7 @@ public class AccountsServiceTest {
       Account accountTo = new Account("accTo", new BigDecimal(500));	  
 	  accService.transferAmount(accountFrom,accountTo,new BigDecimal(500));
 	  verify(notificationService, times(2)).notifyAboutTransfer(any(), any());//verify if the notification service method was invoked 2 times
+	  																			//test will fail if the service is not invoked
   }
   
 }
