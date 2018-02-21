@@ -12,7 +12,6 @@ import com.db.awmd.challenge.exception.DuplicateAccountIdException;
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
-@Slf4j
 public class AccountsRepositoryInMemory implements AccountsRepository {
 
   private final Map<String, Account> accounts = new ConcurrentHashMap<>();
