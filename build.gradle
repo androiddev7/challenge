@@ -25,5 +25,6 @@ repositories {
 dependencies {
   compile("org.springframework.boot:spring-boot-starter-web")
   compileOnly("org.projectlombok:lombok")
+  compile("org.springframework.boot:spring-boot-starter-actuator")
   testCompile("org.springframework.boot:spring-boot-starter-test")
 }
